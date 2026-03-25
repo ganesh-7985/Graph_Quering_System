@@ -5,7 +5,7 @@ services:
     region: oregon
     plan: free
     buildCommand: |
-      cd frontend && npm install && npm run build &&
+      cd frontend && rm -rf node_modules package-lock.json && npm install && npm run build &&
       cd ../backend && pip install -r requirements.txt
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -16,4 +16,4 @@ services:
       - key: PYTHON_VERSION
         value: "3.11.11"
       - key: NODE_VERSION
-        value: "20.18.0"
+        value: "22.15.0"
