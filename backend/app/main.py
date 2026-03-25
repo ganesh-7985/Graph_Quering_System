@@ -6,14 +6,19 @@ All route handlers live in app.routers.*.
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from app.dependencies import app_state
 from app.services.ingestion import init_database, build_graph
 from app.services.llm_service import LLMService
 from app.routers import graph, chat, system
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
 
 
 @asynccontextmanager
@@ -50,3 +55,15 @@ app.add_middleware(
 app.include_router(graph.router)
 app.include_router(chat.router)
 app.include_router(system.router)
+
+# Serve frontend static files in production
+if FRONTEND_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(request: Request, full_path: str):
+        """Serve the React SPA for all non-API routes."""
+        file_path = FRONTEND_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        return FileResponse(str(FRONTEND_DIR / "index.html"))

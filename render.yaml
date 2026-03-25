@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: o2c-graph-system
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: |
+      cd frontend && npm install && npm run build &&
+      cd ../backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: NODE_VERSION
+        value: "20.18.0"
